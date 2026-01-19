@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+<meta charset="UTF-8">
+<title>RN Energy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui;
+  background:#0a0a0a;
+  color:#fff;
+}
+h1{text-align:center;padding:14px;background:#111;}
+.container{padding:14px;}
+.card{
+  background:#1a1a1a;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.8);
+}
+.row{display:flex;justify-content:space-between;align-items:center;}
+
+/* SWITCH */
+.switch{
+  padding:14px 34px;
+  border-radius:40px;
+  border:none;
+  font-size:18px;
+  font-weight:bold;
+  background:#ff3b3b;
+  color:#fff;
+}
+.switch.on{
+  background:#00ff66;
+  color:#000;
+  box-shadow:0 0 20px rgba(0,255,102,.8);
+}
+
+/* DISPLAY */
+.display{text-align:center;}
+.value{font-size:42px;font-weight:800;}
+.volt{color:#00ff66;text-shadow:0 0 20px rgba(0,255,102,.9);}
+.amp{color:#00eaff;text-shadow:0 0 20px rgba(0,234,255,.9);}
+
+/* DRY RUN */
+.dry{
+  color:#ff3b3b;
+  font-weight:700;
+  animation:blink 1s infinite;
+}
+@keyframes blink{50%{opacity:.3;}}
+
+/* RESTART */
+.restart{
+  background:#ff0000;
+  color:#fff;
+  padding:12px 28px;
+  border:none;
+  border-radius:30px;
+  font-size:16px;
+  font-weight:bold;
+}
+
+/* TANKS */
+.tanks{
+  display:flex;
+  justify-content:space-around;
+}
+
+.tank{
+  width:110px;
+  height:180px;
+  border:4px solid #777;
+  border-radius:16px;
+  background:#333;
+  overflow:hidden;
+  position:relative;
+}
+
+.water{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:40%;
+  background:#00ff66;
+  transition:.7s;
+}
+
+.percent{
+  position:absolute;
+  top:50%;
+  width:100%;
+  text-align:center;
+  font-weight:700;
+  color:#00ff66;
+}
+
+.label{
+  text-align:center;
+  color:#aaa;
+  margin-top:6px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>ആർഎൻ എനർജി</h1>
+
+<div class="container">
+
+<!-- MODE -->
+<div class="card">
+  <div class="row"><b>മോഡ്</b><b id="modeTxt">AUTO</b></div><br>
+  <button class="switch on" onclick="toggleMode()">MODE</button>
+</div>
+
+<!-- VOLT AMP -->
+<div class="card display">
+  <div class="value volt"><span id="volt">228</span> V</div>
+  <div class="value amp"><span id="amp">0.0</span> A</div>
+</div>
+
+<!-- DRY RUN -->
+<div class="card">
+  <div class="row">
+    <b>ഡ്രൈ റൺ</b>
+    <span id="dryTxt">OK</span>
+  </div><br>
+  <button class="restart" onclick="manualRestart()">RESTART</button>
+</div>
+
+<!-- TANKS (LEFT / RIGHT SWAPPED) -->
+<div class="card tanks">
+
+  <!-- LEFT : UPPER TANK -->
+  <div>
+    <div class="tank">
+      <div class="water" id="tank"></div>
+      <div class="percent" id="tankPct">70%</div>
+    </div>
+    <div class="label">മുകളിലെ ടാങ്ക്</div>
+  </div>
+
+  <!-- RIGHT : LOWER TANK -->
+  <div>
+    <div class="tank">
+      <div class="water" id="bore"></div>
+      <div class="percent" id="borePct">45%</div>
+    </div>
+    <div class="label">താഴത്തെ ടാങ്ക്</div>
+  </div>
+
+</div>
+
+<!-- MOTOR -->
+<div class="card">
+  <div class="row"><b>മോട്ടോർ</b><b id="motorState">OFF</b></div><br>
+  <button class="switch" id="motorBtn" onclick="toggleMotor()">OFF</button>
+</div>
+
+</div>
+
+<script>
+let motor=false, mode="AUTO", dryRun=false;
+let boreLevel=45, tankLevel=70;
+
+function toggleMotor(){
+  if(dryRun && mode==="AUTO") return;
+  motor=!motor;
+  motorBtn.classList.toggle("on",motor);
+  motorBtn.textContent=motor?"ON":"OFF";
+  motorState.textContent=motor?"ON":"OFF";
+}
+
+function toggleMode(){
+  mode = mode==="AUTO"?"MANUAL":"AUTO";
+  modeTxt.textContent = mode;
+}
+
+function manualRestart(){
+  dryRun=false;
+  dryTxt.textContent="OK";
+  dryTxt.className="";
+}
+
+function update(){
+  if(motor){
+    boreLevel=Math.max(0,boreLevel-2);
+    tankLevel=Math.min(100,tankLevel+2);
+  }
+
+  bore.style.height=boreLevel+"%";
+  tank.style.height=tankLevel+"%";
+  borePct.textContent=boreLevel+"%";
+  tankPct.textContent=tankLevel+"%";
+
+  if(boreLevel<=5){
+    dryRun=true;
+    dryTxt.textContent="DRY RUN";
+    dryTxt.className="dry";
+    if(mode==="AUTO"){
+      motor=false;
+      motorBtn.classList.remove("on");
+      motorBtn.textContent="OFF";
+      motorState.textContent="OFF";
+    }
+  }
+
+  let v=220+Math.random()*15;
+  let a=motor?(4+Math.random()*3):0;
+  volt.textContent=v.toFixed(0);
+  amp.textContent=a.toFixed(1);
+}
+setInterval(update,2000);
+</script>
+
+</body>
+  </html>
